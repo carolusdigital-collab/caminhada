@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Registro de Caminhadas</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Caminhadas">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+@font-face{font-family:Barlow;font-weight:400;font-display:swap;src:url(barlow-400.woff2) format("woff2")}
+@font-face{font-family:Barlow;font-weight:600;font-display:swap;src:url(barlow-600.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-weight:700;font-display:swap;src:url(barlow-condensed-700.woff2) format("woff2")}
+:root{--bg1:#e3f3f1;--bg2:#e4e8fb;--card:#fff;--glass:rgba(255,255,255,.55);--ink:#12202a;--mut:#4f626d;--line:#d2dde3;--in:rgba(20,40,50,.05);--acc:#0f766e;--acc3:#0e7490;--acc2:#f2b705;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#09131b;--bg2:#0f2433;--card:#15232c;--glass:rgba(16,30,40,.5);--ink:#e9f2f6;--mut:#9fb3be;--line:rgba(255,255,255,.12);--in:rgba(255,255,255,.07);--acc:#2dd4bf;--acc3:#38bdf8;--on:#04201c}}
+:root[data-theme="dark"]{--bg1:#09131b;--bg2:#0f2433;--card:#15232c;--glass:rgba(16,30,40,.5);--ink:#e9f2f6;--mut:#9fb3be;--line:rgba(255,255,255,.12);--in:rgba(255,255,255,.07);--acc:#2dd4bf;--acc3:#38bdf8;--on:#04201c}
+html{background:var(--bg1);scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+#bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(60% 45% at 12% 8%,rgba(45,212,191,.38),transparent 70%),radial-gradient(55% 45% at 92% 22%,rgba(99,102,241,.3),transparent 70%),radial-gradient(60% 50% at 50% 105%,rgba(242,183,5,.2),transparent 70%),linear-gradient(160deg,var(--bg1),var(--bg2))}
+body{margin:0;color:var(--ink);font:400 16px/1.5 Barlow,system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,.num,summary{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;letter-spacing:.01em;margin:0}
+h1{font-size:40px;line-height:1.05}
+h2,summary{font-size:22px}
+h2{margin-bottom:12px}
+summary{cursor:pointer}
+.sub{color:var(--mut);margin:4px 0 0}
+section{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:0 6px 24px rgba(10,30,40,.08)}
+html.glass section{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:1px solid rgba(255,255,255,.3);box-shadow:0 10px 36px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.35)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}
+.day{background:var(--in);border:1px solid var(--line);border-radius:14px;padding:8px 2px;text-align:center;min-height:70px}
+.day b{display:block;font-weight:600;font-size:13px;color:var(--mut)}
+.day span{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:21px}
+.day.on{background:linear-gradient(135deg,var(--acc),var(--acc3));border-color:transparent;color:var(--on)}
+.day.on b{color:var(--on)}
+.day.today{outline:2px solid var(--acc2);outline-offset:2px}
+.bar{height:10px;background:var(--in);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:4px 0 10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc3));border-radius:99px}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{padding:10px 12px;background:var(--in);border:1px solid var(--line);border-radius:14px}
+.stat .num{font-size:30px;line-height:1}
+.stat small{color:var(--mut);display:block;margin-top:4px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:flex;flex-direction:column;font-size:14px;color:var(--mut);gap:4px}
+label.full,.full{grid-column:1/-1}
+input,select,textarea,button{font:inherit;color:var(--ink)}
+input,select,textarea{background:var(--in);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+select option{color:#12202a}
+input[type=range]{padding:0;accent-color:var(--acc)}
+.chk{flex-direction:row;align-items:center;gap:8px;font-size:16px;color:var(--ink)}
+.chk input{width:auto;accent-color:var(--acc)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible,.btn:focus-within{outline:3px solid var(--acc2);outline-offset:1px}
+button,.btn{cursor:pointer;border:0;border-radius:99px;padding:12px 18px;font-weight:600;background:linear-gradient(135deg,var(--acc),var(--acc3));color:var(--on)}
+.btn{display:inline-block;font-size:15px}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.small{padding:7px 12px;font-size:14px}
+.pace{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{fill:var(--mut);font:12px Barlow,sans-serif}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.item .num{font-size:22px}
+.item p{margin:0;color:var(--mut);font-size:14px;grid-column:1/-1}
+.empty{color:var(--mut);padding:8px 0}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:end}
+.opts{display:grid;gap:14px;margin-top:14px}
+@media(prefers-reduced-motion:no-preference){.bar i{transition:width .4s}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<main>
+<section>
+  <h1>Minhas caminhadas</h1>
+  <p class="sub">Registre cada saída e acompanhe frequência, distância e ritmo.</p>
+</section>
+
+<section>
+  <details>
+    <summary>Aparência</summary>
+    <div class="opts">
+      <label class="chk"><input type="checkbox" id="uGlass"> Efeito vidro (Glass)</label>
+      <label>Tema<select id="uTheme"><option value="auto">Automático</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
+      <div class="tools">
+        <label class="btn">Escolher imagem de fundo<input type="file" id="uFile" accept="image/*" hidden></label>
+        <button class="ghost small" id="uClr" hidden>Remover imagem</button>
+      </div>
+      <label id="uDimW" hidden>Escurecer imagem<input type="range" id="uDim" min="0" max="80"></label>
+      <p class="sub" id="uMsg"></p>
+    </div>
+  </details>
+</section>
+
+<section>
+  <h2>Esta semana</h2>
+  <div class="week" id="week"></div>
+  <div class="row"><span id="gDias"></span><span id="gDiasPct"></span></div>
+  <div class="bar"><i id="bDias"></i></div>
+  <div class="row"><span id="gKm"></span><span id="gKmPct"></span></div>
+  <div class="bar"><i id="bKm"></i></div>
+  <div class="tools">
+    <label>Meta: dias por semana<input type="number" id="metaDias" min="1" max="7" step="1"></label>
+    <label>Meta: km por semana<input type="number" id="metaKm" min="1" step="0.5"></label>
+  </div>
+</section>
+
+<section>
+  <h2>Desempenho</h2>
+  <div class="stats" id="stats"></div>
+</section>
+
+<section>
+  <h2>Registrar caminhada</h2>
+  <form id="f">
+    <label>Data<input type="date" id="data" required></label>
+    <label>Distância (km)<input type="number" id="km" step="0.01" min="0.1" inputmode="decimal" required></label>
+    <label>Duração (min)<input type="number" id="min" step="1" min="1" inputmode="numeric" required></label>
+    <label>Esforço
+      <select id="esf"><option value="1">1 · Leve</option><option value="2">2 · Moderado</option><option value="3" selected>3 · Firme</option><option value="4">4 · Forte</option><option value="5">5 · Máximo</option></select>
+    </label>
+    <label class="full">Local ou rota<input type="text" id="local" placeholder="Ex.: Parque, volta do quarteirão"></label>
+    <label class="full">Observações<textarea id="obs" rows="2" placeholder="Clima, como se sentiu, dores"></textarea></label>
+    <div class="full row" style="align-items:center"><span>Ritmo: <span class="pace" id="pv">—</span></span><button type="submit">Salvar caminhada</button></div>
+  </form>
+</section>
+
+<section>
+  <h2>Km por semana</h2>
+  <svg class="chart" id="cKm" viewBox="0 0 320 150" role="img" aria-label="Quilômetros por semana nas últimas 8 semanas"></svg>
+</section>
+
+<section>
+  <h2>Ritmo (min/km)</h2>
+  <svg class="chart" id="cPace" viewBox="0 0 320 150" role="img" aria-label="Ritmo nas últimas caminhadas"></svg>
+  <p class="sub" style="margin:6px 0 0">Menor é mais rápido.</p>
+</section>
+
+<section>
+  <h2>Relatório em PDF</h2>
+  <p class="sub" style="margin:0 0 12px">Resumo, gráficos de frequência, distância e ritmo, e a lista das caminhadas.</p>
+  <div class="tools">
+    <label>Período<select id="pPer"><option value="30">Últimos 30 dias</option><option value="90" selected>Últimos 90 dias</option><option value="all">Tudo</option></select></label>
+    <button id="pdfBtn" hidden>Gerar PDF</button>
+  </div>
+  <p class="sub" id="pMsg"></p>
+</section>
+
+<section>
+  <h2>Backup dos dados</h2>
+  <p class="sub" style="margin:0 0 12px">Guarde uma cópia dos registros ou leve para outro aparelho.</p>
+  <div class="tools">
+    <button class="ghost small" id="bkSave">Baixar backup</button>
+    <label class="btn">Restaurar backup<input type="file" id="bkFile" accept=".json,application/json" hidden></label>
+  </div>
+  <p class="sub" id="bkMsg"></p>
+</section>
+
+<section>
+  <h2>Histórico</h2>
+  <div id="hist"></div>
+</section>
+</main>
+
+<script src="jspdf.umd.min.js"></script>
+<script>
+const KEY='caminhadas-v1';
+let S={walks:[],goal:{dias:4,km:20}};
+try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);if(p&&p.walks)S=Object.assign(S,p)}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const nf=(n,d=1)=>n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const pd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const mon=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-(x.getDay()+6)%7);return x};
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const pace=w=>w.min/w.km;
+const fp=p=>{if(!isFinite(p))return'—';let m=Math.floor(p),s=Math.round((p-m)*60);if(s==60){m++;s=0}return m+':'+String(s).padStart(2,'0')};
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function weekWalks(start){const a=iso(start),b=iso(addD(start,6));return S.walks.filter(w=>w.data>=a&&w.data<=b)}
+
+function render(){
+  const today=new Date(),ws=mon(today),g=S.goal;
+  $('metaDias').value=g.dias;$('metaKm').value=g.km;
+  // semana
+  const names=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  $('week').innerHTML=names.map((n,i)=>{
+    const d=addD(ws,i),k=iso(d),km=S.walks.filter(w=>w.data===k).reduce((a,w)=>a+w.km,0);
+    return `<div class="day${km?' on':''}${k===iso(today)?' today':''}"><b>${n}</b><span>${km?nf(km):'·'}</span></div>`}).join('');
+  const cur=weekWalks(ws),dias=new Set(cur.map(w=>w.data)).size,km=cur.reduce((a,w)=>a+w.km,0);
+  $('gDias').textContent=`${dias} de ${g.dias} dias`;$('gDiasPct').textContent=Math.min(100,Math.round(dias/g.dias*100))+'%';
+  $('bDias').style.width=Math.min(100,dias/g.dias*100)+'%';
+  $('gKm').textContent=`${nf(km)} de ${nf(g.km)} km`;$('gKmPct').textContent=Math.min(100,Math.round(km/g.km*100))+'%';
+  $('bKm').style.width=Math.min(100,km/g.km*100)+'%';
+  // semanas (últimas 8)
+  const weeks=[];for(let i=7;i>=0;i--){const s=addD(ws,-7*i),w=weekWalks(s);weeks.push({s,km:w.reduce((a,x)=>a+x.km,0),dias:new Set(w.map(x=>x.data)).size})}
+  // sequência de semanas com meta de dias
+  let streak=0,i=7;if(weeks[7].dias<g.dias)i=6;
+  for(;i>=0&&weeks[i].dias>=g.dias;i--)streak++;
+  // stats
+  const last30=S.walks.filter(w=>w.data>=iso(addD(today,-30)));
+  const tk=S.walks.reduce((a,w)=>a+w.km,0),tm=S.walks.reduce((a,w)=>a+w.min,0);
+  const p30=last30.length?last30.reduce((a,w)=>a+w.min,0)/last30.reduce((a,w)=>a+w.km,0):NaN;
+  const best=S.walks.length?Math.min(...S.walks.map(pace)):NaN;
+  $('stats').innerHTML=[
+    [S.walks.length,'caminhadas'],[nf(tk),'km no total'],
+    [fp(p30),'ritmo médio, 30 dias'],[fp(best),'melhor ritmo'],
+    [streak,'semanas seguidas na meta'],[tm?Math.round(tm/60*10)/10+' h':'—','tempo caminhando'],
+    [last30.length,'caminhadas em 30 dias'],[S.walks.length?nf(tk/S.walks.length):'—','km por caminhada']
+  ].map(([n,l])=>`<div class="stat"><div class="num">${n}</div><small>${l}</small></div>`).join('');
+  // gráfico km
+  const mx=Math.max(g.km,...weeks.map(w=>w.km),1),bw=26,gap=12,H=110;
+  let svg=`<line x1="0" x2="320" y1="${H-g.km/mx*H+10}" y2="${H-g.km/mx*H+10}" stroke="var(--acc2)" stroke-width="2" stroke-dasharray="5 4"/><text x="0" y="${H-g.km/mx*H+4}">meta ${nf(g.km,0)} km</text>`;
+  weeks.forEach((w,j)=>{const h=w.km/mx*H,x=8+j*(bw+gap);
+    svg+=`<rect x="${x}" y="${H-h+10}" width="${bw}" height="${Math.max(h,1)}" rx="3" fill="var(--acc)"/><text x="${x+bw/2}" y="${H-h+6}" text-anchor="middle">${w.km?nf(w.km,0):''}</text><text x="${x+bw/2}" y="138" text-anchor="middle">${String(w.s.getDate()).padStart(2,'0')}/${String(w.s.getMonth()+1).padStart(2,'0')}</text>`});
+  $('cKm').innerHTML=svg;
+  // gráfico ritmo
+  const rw=[...S.walks].sort((a,b)=>a.data.localeCompare(b.data)).slice(-12);
+  if(rw.length<2){$('cPace').innerHTML='<text x="0" y="40">Registre ao menos 2 caminhadas para ver a evolução.</text>'}
+  else{const ps=rw.map(pace),lo=Math.min(...ps),hi=Math.max(...ps),r=(hi-lo)||1;
+    const pts=ps.map((p,j)=>[10+j*(300/(rw.length-1)),15+(p-lo)/r*90]);
+    $('cPace').innerHTML=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--acc)" stroke-width="2.5"/>`+
+      pts.map((p,j)=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="var(--acc2)" stroke="var(--acc)" stroke-width="1.5"/>`).join('')+
+      `<text x="0" y="10">${fp(lo)}</text><text x="0" y="125">${fp(hi)}</text><text x="10" y="145">${rw[0].data.split('-').reverse().slice(0,2).join('/')}</text><text x="310" y="145" text-anchor="end">${rw[rw.length-1].data.split('-').reverse().slice(0,2).join('/')}</text>`}
+  // histórico
+  const h=[...S.walks].sort((a,b)=>b.data.localeCompare(a.data));
+  $('hist').innerHTML=h.length?h.map(w=>`<div class="item"><div><b>${w.data.split('-').reverse().join('/')}</b>${w.local?' · '+esc(w.local):''}</div><button class="ghost small" data-del="${w.id}">Excluir</button>
+    <div class="num">${nf(w.km,2)} km · ${w.min} min · ${fp(pace(w))} /km · esforço ${w.esf}</div><span></span>${w.obs?`<p>${esc(w.obs)}</p>`:''}</div>`).join(''):'<div class="empty">Nenhuma caminhada registrada. Preencha o formulário acima.</div>';
+}
+
+function prev(){const k=parseFloat($('km').value),m=parseFloat($('min').value);$('pv').textContent=k>0&&m>0?fp(m/k)+' /km':'—'}
+$('km').oninput=$('min').oninput=prev;
+$('data').value=iso(new Date());
+$('f').addEventListener('submit',e=>{e.preventDefault();
+  S.walks.push({id:Date.now().toString(36),data:$('data').value,km:parseFloat($('km').value),min:parseFloat($('min').value),esf:+$('esf').value,local:$('local').value.trim(),obs:$('obs').value.trim()});
+  save();['km','min','local','obs'].forEach(i=>$(i).value='');prev();render()});
+$('hist').addEventListener('click',e=>{const id=e.target.dataset.del;if(!id)return;
+  if(e.target.dataset.sure){S.walks=S.walks.filter(w=>w.id!==id);save();render()}
+  else{e.target.dataset.sure=1;e.target.textContent='Confirmar exclusão'}});
+$('metaDias').onchange=()=>{S.goal.dias=Math.min(7,Math.max(1,+$('metaDias').value||1));save();render()};
+$('metaKm').onchange=()=>{S.goal.km=Math.max(1,+$('metaKm').value||1);save();render()};
+let U={glass:true,theme:'auto',dim:25,img:''};
+try{const r=localStorage.getItem('caminhadas-ui');if(r)Object.assign(U,JSON.parse(r))}catch(e){}
+const saveU=()=>{try{localStorage.setItem('caminhadas-ui',JSON.stringify(U));return true}catch(e){return false}};
+function applyUI(){
+  const r=document.documentElement,a=U.dim/100;
+  r.classList.toggle('glass',!!U.glass);
+  U.theme==='auto'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',U.theme);
+  $('bg').style.background=U.img?`linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})),url("${U.img}") center/cover no-repeat`:'';
+  $('uGlass').checked=!!U.glass;$('uTheme').value=U.theme;$('uDim').value=U.dim;
+  $('uDimW').hidden=$('uClr').hidden=!U.img;
+}
+$('uGlass').onchange=e=>{U.glass=e.target.checked;saveU();applyUI()};
+$('uTheme').onchange=e=>{U.theme=e.target.value;saveU();applyUI()};
+$('uDim').oninput=e=>{U.dim=+e.target.value;applyUI()};
+$('uDim').onchange=saveU;
+$('uClr').onclick=()=>{U.img='';$('uMsg').textContent='';saveU();applyUI()};
+$('uFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const fr=new FileReader();
+  fr.onload=()=>{const im=new Image();
+    im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');
+      c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      U.img=c.toDataURL('image/jpeg',.78);
+      $('uMsg').textContent=saveU()?'':'Imagem aplicada, mas grande demais para ficar salva neste aparelho.';
+      applyUI()};
+    im.onerror=()=>{$('uMsg').textContent='Não foi possível abrir essa imagem.'};
+    im.src=fr.result};
+  fr.readAsDataURL(f);e.target.value=''};
+let DL=null;
+$('pdfBtn').hidden=false;if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+const fd=s=>s.split('-').reverse().join('/');
+$('pdfBtn').onclick=async()=>{
+  const msg=t=>$('pMsg').textContent=t;
+  if(!window.jspdf){msg('Biblioteca de PDF não carregou. Verifique a conexão e recarregue.');return}
+  const today=new Date(),g=S.goal,per=$('pPer').value;
+  const all=[...S.walks].sort((a,b)=>a.data.localeCompare(b.data));
+  const from=per==='all'?(all.length?all[0].data:iso(today)):iso(addD(today,-(+per)+1));
+  const W=all.filter(w=>w.data>=from);
+  if(!W.length){msg('Nenhuma caminhada no período escolhido.');return}
+  const ws0=mon(today),total=Math.round((ws0-mon(pd(from)))/6048e5)+1,nW=Math.min(16,total),weeks=[];
+  for(let i=nW-1;i>=0;i--){const st=addD(ws0,-7*i),a=iso(st),b=iso(addD(st,6)),ww=W.filter(w=>w.data>=a&&w.data<=b);
+    weeks.push({lab:String(st.getDate()).padStart(2,'0')+'/'+String(st.getMonth()+1).padStart(2,'0'),km:ww.reduce((x,w)=>x+w.km,0),dias:new Set(ww.map(w=>w.data)).size})}
+  const tk=W.reduce((a,w)=>a+w.km,0),tm=W.reduce((a,w)=>a+w.min,0),dAt=new Set(W.map(w=>w.data)).size;
+  const {jsPDF}=window.jspdf,d=new jsPDF({unit:'mm',format:'a4'}),PW=210,M=15,teal=[15,118,110],gold=[242,183,5],gray=[90,105,115],ink=[20,33,43];
+  const ns=v=>v%1?nf(v,1):String(v);
+  d.setFillColor(...teal);d.rect(0,0,PW,28,'F');d.setTextColor(255,255,255);d.setFont('helvetica','bold');d.setFontSize(20);d.text('Relatório de caminhadas',M,13);
+  d.setFont('helvetica','normal');d.setFontSize(10);d.text(`Período: ${fd(from)} a ${fd(iso(today))}   |   Metas: ${g.dias} dias e ${ns(g.km)} km por semana`,M,21);
+  const box=[[W.length,'caminhadas'],[nf(tk)+' km','distância total'],[Math.floor(tm/60)+'h'+String(Math.round(tm%60)).padStart(2,'0'),'tempo total'],[fp(tm/tk)+' /km','ritmo médio'],
+    [fp(Math.min(...W.map(pace)))+' /km','melhor ritmo'],[dAt,'dias com caminhada'],[nf(dAt/total),'dias por semana (média)'],[weeks.filter(w=>w.dias>=g.dias).length+' de '+nW,'semanas na meta de dias']];
+  const bw=(PW-2*M-12)/4;
+  box.forEach((b,i)=>{const x=M+(i%4)*(bw+4),y=34+Math.floor(i/4)*22;d.setFillColor(236,243,245);d.roundedRect(x,y,bw,18,2,2,'F');
+    d.setTextColor(...teal);d.setFont('helvetica','bold');d.setFontSize(14);d.text(String(b[0]),x+3,y+8);d.setTextColor(...gray);d.setFont('helvetica','normal');d.setFontSize(8);d.text(b[1],x+3,y+14)});
+  const title=(t,y)=>{d.setTextColor(...ink);d.setFont('helvetica','bold');d.setFontSize(12);d.text(t,M,y)};
+  const bars=(t,vals,goal,y)=>{title(t,y);const top=y+6,h=36,bx=M+8,w2=PW-2*M-8,mx=Math.max(goal,...vals,1)*1.15,slot=w2/vals.length,bwd=Math.min(slot*.6,14);
+    d.setDrawColor(210,221,227);d.setLineWidth(.3);d.line(bx,top+h,bx+w2,top+h);
+    vals.forEach((v,i)=>{const bh=v/mx*h,x=bx+i*slot+(slot-bwd)/2;d.setFillColor(...teal);if(bh>0)d.rect(x,top+h-bh,bwd,bh,'F');
+      d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(...gray);if(v)d.text(ns(v),x+bwd/2,top+h-bh-1.2,{align:'center'});d.text(weeks[i].lab,x+bwd/2,top+h+4.5,{align:'center'})});
+    const gy=top+h-goal/mx*h;d.setDrawColor(...gold);d.setLineWidth(.6);d.setLineDashPattern([2,1.5],0);d.line(bx,gy,bx+w2,gy);d.setLineDashPattern([],0);
+    d.setFontSize(7);d.setTextColor(...gray);d.text('meta',M,gy+1)};
+  bars('Frequência: dias com caminhada por semana',weeks.map(w=>w.dias),g.dias,80);
+  bars('Distância: km por semana',weeks.map(w=>w.km),g.km,138);
+  title('Ritmo por caminhada (min/km, menor é mais rápido)',196);
+  const L=W.slice(-30),top=202,h=36,bx=M+10,w2=PW-2*M-10;
+  if(L.length<2){d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(...gray);d.text('Registre ao menos 2 caminhadas no período para ver a evolução.',M,top+10)}
+  else{const ps=L.map(pace),lo=Math.min(...ps),hi=Math.max(...ps),r=(hi-lo)||1,pts=ps.map((p,i)=>[bx+i*w2/(L.length-1),top+4+(p-lo)/r*(h-8)]);
+    d.setDrawColor(210,221,227);d.setLineWidth(.3);d.line(bx,top+h,bx+w2,top+h);
+    d.setDrawColor(...teal);d.setLineWidth(.7);for(let i=1;i<pts.length;i++)d.line(pts[i-1][0],pts[i-1][1],pts[i][0],pts[i][1]);
+    d.setFillColor(...gold);pts.forEach(p=>d.circle(p[0],p[1],1.2,'FD'));
+    d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(...gray);d.text(fp(lo),M,top+5);d.text(fp(hi),M,top+h-2);
+    d.text(fd(L[0].data).slice(0,5),bx,top+h+4.5);d.text(fd(L[L.length-1].data).slice(0,5),bx+w2,top+h+4.5,{align:'right'})}
+  // tabela
+  const cols=[[M,'Data'],[M+26,'Distância'],[M+52,'Duração'],[M+78,'Ritmo'],[M+102,'Esforço'],[M+124,'Local']];
+  const head=y=>{d.setFillColor(...teal);d.rect(M,y-5,PW-2*M,7,'F');d.setTextColor(255,255,255);d.setFont('helvetica','bold');d.setFontSize(9);cols.forEach(c=>d.text(c[1],c[0]+2,y))};
+  d.addPage();title('Caminhadas do período',M+2);let y=M+12;head(y);y+=8;
+  [...W].reverse().forEach((w,i)=>{if(y>278){d.addPage();y=M+4;head(y);y+=8}
+    if(i%2===0){d.setFillColor(242,247,248);d.rect(M,y-4.5,PW-2*M,6.5,'F')}
+    d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(...ink);
+    [fd(w.data),nf(w.km,2)+' km',w.min+' min',fp(pace(w))+' /km',String(w.esf),(w.local||'').slice(0,34)].forEach((t,j)=>d.text(t,cols[j][0]+2,y));y+=6.5});
+  const n=d.getNumberOfPages();for(let i=1;i<=n;i++){d.setPage(i);d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(...gray);d.text(`Página ${i} de ${n}`,PW/2,291,{align:'center'})}
+  try{await saveBlob('relatorio-caminhadas-'+iso(today)+'.pdf',d.output('blob'));msg('Relatório pronto.')}
+  catch(e){msg(e&&e.code==='declined'?'':'Não foi possível salvar o PDF.')}
+};
+async function saveBlob(name,blob){
+  if(DL)return DL.save({filename:name,data:blob});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+$('bkSave').onclick=async()=>{try{await saveBlob('caminhadas-backup-'+iso(new Date())+'.json',new Blob([JSON.stringify({v:1,walks:S.walks,goal:S.goal,ui:U})],{type:'application/json'}));$('bkMsg').textContent='Backup pronto.'}catch(e){$('bkMsg').textContent=e&&e.code==='declined'?'':'Não foi possível salvar o backup.'}};
+$('bkFile').onchange=e=>{const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{const j=JSON.parse(t);if(!Array.isArray(j.walks))throw 0;
+    S.walks=j.walks.filter(w=>w&&/^\d{4}-\d{2}-\d{2}$/.test(w.data)&&w.km>0&&w.min>0).map(w=>({id:String(w.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6)),data:w.data,km:+w.km,min:+w.min,esf:+w.esf||3,local:String(w.local||''),obs:String(w.obs||'')}));
+    if(j.goal)S.goal={dias:+j.goal.dias||4,km:+j.goal.km||20};
+    if(j.ui&&typeof j.ui==='object'){U=Object.assign(U,{glass:!!j.ui.glass,theme:['auto','light','dark'].includes(j.ui.theme)?j.ui.theme:'auto',dim:+j.ui.dim||0,img:typeof j.ui.img==='string'&&j.ui.img.startsWith('data:image/')?j.ui.img:''});saveU()}
+    save();applyUI();render();$('bkMsg').textContent='Backup restaurado: '+S.walks.length+' caminhadas.'}).catch(()=>{$('bkMsg').textContent='Arquivo de backup inválido.'});e.target.value=''};
+applyUI();
+render();
+</script>
+</body>
+</html>
